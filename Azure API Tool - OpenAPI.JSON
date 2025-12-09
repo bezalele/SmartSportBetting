@@ -1,0 +1,172 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "SmartSportsBetting API",
+    "version": "1.0",
+    "description": "API for NBA value bet recommendations (moneyline, totals, props)."
+  },
+  "servers": [
+    {
+      "url": "https://smartsportsbetting-api-dfewezahgwfsfyct.canadacentral-01.azurewebsites.net"
+    }
+  ],
+  "paths": {
+    "/api/valuebets/today": {
+      "get": {
+        "operationId": "getValueBetsToday",
+        "summary": "Get today's NBA value bets.",
+        "description": "Returns value bet recommendations for games whose GameDateUtc is today (UTC). Use this when the user asks for today's best bets without specifying a date.",
+        "responses": {
+          "200": {
+            "description": "List of today's value bets.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ValueBet"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/valuebets": {
+      "get": {
+        "operationId": "getValueBets",
+        "summary": "Get NBA value bets for a specific date and filters.",
+        "description": "Returns value bets for a given game date (UTC). Supports optional filters for minimum edge, number of results, and market type.",
+        "parameters": [
+          {
+            "name": "date",
+            "in": "query",
+            "description": "Game date in yyyy-MM-dd (UTC). If omitted, defaults to today's UTC date.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "minEdge",
+            "in": "query",
+            "description": "Minimum edge (expected value advantage) to include, e.g. 0.02 for 2 percent.",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "take",
+            "in": "query",
+            "description": "Maximum number of bets to return (default 50, max 500).",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "marketType",
+            "in": "query",
+            "description": "Filter by market type, e.g. MONEYLINE, TOTAL_POINTS, PLAYER_POINTS, PLAYER_REBOUNDS, PLAYER_ASSISTS.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of value bets for the specified date and filters.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ValueBet"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ValueBet": {
+        "type": "object",
+        "properties": {
+          "betRecommendationId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Internal identifier of the bet recommendation."
+          },
+          "league": {
+            "type": "string",
+            "description": "League code (e.g., NBA).",
+            "example": "NBA"
+          },
+          "homeTeam": {
+            "type": "string",
+            "example": "Boston Celtics"
+          },
+          "awayTeam": {
+            "type": "string",
+            "example": "Miami Heat"
+          },
+          "gameTime": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Scheduled start time of the game in UTC."
+          },
+          "provider": {
+            "type": "string",
+            "description": "Sportsbook/provider code.",
+            "example": "DK"
+          },
+          "betType": {
+            "type": "string",
+            "description": "Market type code (e.g., MONEYLINE, TOTAL_POINTS, PLAYER_POINTS, PLAYER_REBOUNDS, PLAYER_ASSISTS)."
+          },
+          "lineValue": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "description": "Line associated with the bet (e.g., total points line, player points line)."
+          },
+          "bookOdds": {
+            "type": "integer",
+            "format": "int32",
+            "description": "American odds from the sportsbook (e.g., -110, +150)."
+          },
+          "modelProbability": {
+            "type": "number",
+            "format": "double",
+            "description": "Model-estimated win probability (0–1)."
+          },
+          "impliedProbability": {
+            "type": "number",
+            "format": "double",
+            "description": "Win probability implied by the sportsbook odds (0–1)."
+          },
+          "edge": {
+            "type": "number",
+            "format": "double",
+            "description": "Expected value edge, e.g. modelProbability - impliedProbability."
+          },
+          "riskLevel": {
+            "type": "string",
+            "description": "Risk classification (e.g., Low, Medium, High, Negative).",
+            "example": "Medium"
+          }
+        }
+      }
+    }
+  }
+}
